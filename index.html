@@ -1,166 +1,298 @@
 <!DOCTYPE html>
-
+<html lang="ja">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>終活診断：デジタル遺産編</title>
+    <title>至高の毎日占い</title>
     <style>
-        body {
-            background-color: #ffffff;
-            color: #333;
-            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+        /* --- 1. ページ全体の設定（最大幅800px・中央寄せ） --- */
+        body { 
+            font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; 
+            background: #f4f7f9; 
+            color: #2c3e50; 
+            line-height: 1.6; 
+            margin: 0 auto;       /* 左右をオートにして中央寄せ */
+            padding: 15px; 
+            font-size: 18px; 
+            max-width: 800px;     /* 全体の幅を800pxに制限 */
+            box-sizing: border-box;
+            overflow-x: hidden;   /* 横揺れ防止 */
         }
-        .container {
-            width: 90%;
-            max-width: 600px;
-            text-align: center;
-            padding: 40px 20px;
+
+        /* --- 2. 画像の強制リサイズ（800pxからはみ出さない・中央寄せ） --- */
+        img {
+            max-width: 100% !important; /* 親の幅（最大800px）を超えない */
+            height: auto !important;    /* 比率を維持 */
+            display: block;
+            margin: 0 auto 20px auto;   /* 中央寄せ＆下の余白 */
         }
-        h1 { font-size: 1.5rem; margin-bottom: 30px; color: #2c3e50; }
-        .question-card {
-            display: none; /* 順番に表示 */
-            border: 1px solid #eee;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+
+        /* --- 3. メインコンテナ --- */
+        .container { 
+            width: 100%;
+            background: white; 
+            padding: 30px 20px; 
+            border-radius: 25px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            box-sizing: border-box;
+            margin-bottom: 30px;
         }
-        .question-card.active { display: block; }
-        .btn-group { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
-        button {
-            padding: 10px 30px;
-            font-size: 1rem;
-            cursor: pointer;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background: #fff;
-            transition: 0.3s;
+
+        /* --- 4. 各パーツのスタイル --- */
+        h1 { 
+            text-align: center; 
+            color: #2c3e50; 
+            font-size: 26px; 
+            margin-bottom: 10px; 
+            border-bottom: 2px solid #673ab7; 
+            padding-bottom: 10px; 
         }
-        button:hover { background: #f0f0f0; }
-        .yes-btn { border-color: #27ae60; color: #27ae60; }
-        .no-btn { border-color: #e74c3c; color: #e74c3c; }
+
+        .date { text-align: center; color: #888; font-size: 18px; margin-bottom: 25px; font-weight: bold; }
         
-        .advice-box {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f9f9f9;
-            border-radius: 5px;
-            font-size: 0.9rem;
-            text-align: left;
-            display: none;
+        .status-bar { 
+            display: flex; 
+            justify-content: space-around; 
+            background: #f8f9fa; 
+            border: 2px solid #eee; 
+            padding: 15px; 
+            border-radius: 15px; 
+            margin-bottom: 30px; 
+            font-weight: bold; 
+            font-size: 16px; 
+            color: #4a148c; 
         }
-        #result-area { display: none; }
-        .score { font-size: 2rem; font-weight: bold; margin: 20px 0; }
-        .gauge { height: 10px; width: 100%; background: #eee; border-radius: 5px; overflow: hidden; margin-bottom: 20px; }
-        .gauge-bar { height: 100%; background: #27ae60; width: 0%; transition: 1s; }
+        
+        .intro { 
+            background: #fff9c4; 
+            padding: 20px; 
+            border-radius: 15px; 
+            margin-bottom: 30px; 
+            text-align: center; 
+            font-weight: bold; 
+            border: 1px solid #fbc02d; 
+            line-height: 1.4;
+        }
+        
+        .choice-buttons { 
+            display: flex; 
+            justify-content: space-between; 
+            gap: 10px; 
+            margin-bottom: 40px; 
+        }
+
+        button { 
+            flex: 1; 
+            padding: 20px 5px; 
+            border: none; 
+            border-radius: 15px; 
+            background: #673ab7; 
+            color: white; 
+            cursor: pointer; 
+            font-size: 18px; 
+            font-weight: bold; 
+            transition: all 0.3s; 
+            box-shadow: 0 5px 0 #4527a0; 
+            line-height: 1.2;
+        }
+
+        button:hover:not(:disabled) { background: #5e35b1; transform: translateY(-2px); }
+        button:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
+        button:disabled { background: #bdc3c7; cursor: not-allowed; opacity: 0.6; box-shadow: none; }
+
+        #result { display: none; padding-top: 10px; border-top: 3px double #eee; }
+        
+        .fortune-header { 
+            font-size: 22px; 
+            font-weight: bold; 
+            color: #e91e63; 
+            text-align: center; 
+            margin-bottom: 25px; 
+            padding: 15px; 
+            background: #fce4ec; 
+            border-radius: 10px; 
+            line-height: 1.4;
+        }
+        
+        .section-title { 
+            font-size: 20px; 
+            font-weight: bold; 
+            color: #673ab7; 
+            margin-top: 30px; 
+            margin-bottom: 10px; 
+            border-bottom: 3px solid #673ab7; 
+            display: inline-block; 
+        }
+
+        .section-content { margin-bottom: 20px; text-align: justify; font-size: 17px; }
+
+        .lucky-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+            background: #f1f8e9; 
+            padding: 20px; 
+            border-radius: 15px; 
+            border: 1px solid #c5e1a5; 
+            margin-top: 20px; 
+        }
+        .lucky-item { font-size: 16px; }
+        .item-label { font-weight: bold; color: #388e3c; }
+
+        .notice-card { background: #fff3e0; border-left: 10px solid #ff9800; padding: 20px; margin-top: 40px; font-weight: bold; text-align: center; color: #e65100; }
+
+        /* --- 5. スマホ用レスポンシブ設定 --- */
+        @media (max-width: 800px) {
+            body { padding: 10px; }
+            h1 { font-size: 20px; }
+            .status-bar { flex-direction: column; align-items: center; gap: 8px; }
+            button { font-size: 15px; }
+            .lucky-grid { grid-template-columns: 1fr; }
+        }
     </style>
+</head>
+<body>
 
-
+<img src="https://life-supporter.jp/sp/hxySQ4ff/ct5NJq8Z/images/XS012099.jpg" alt="タイトル画像">
 
 <div class="container">
-    <div id="quiz-section">
-        <h1 id="category-title">終活診断：デジタル遺産編</h1>
-        <div id="question-container">
-            </div>
+    <h1>✨ 本日の特別運勢鑑定 ✨</h1>
+    <div id="currentDate" class="date"></div>
+
+    <div class="status-bar">
+        <span>累計得点: <span id="userScore">0</span> pt</span>
+        <span>所持COIN: <span id="userCoin">0</span></span>
     </div>
 
-    <div id="result-area">
-        <h1>診断結果</h1>
-        <div class="gauge"><div id="gauge-bar" class="gauge-bar"></div></div>
-        <div id="score-text" class="score"></div>
-        <div id="evaluation-text" style="font-weight: bold; margin-bottom: 20px;"></div>
-        <p id="total-advice"><br></p>
-        <button onclick="location.reload()">もう一度診断する</button>
+    <div id="introArea">
+        <div class="intro">
+            魂の直感で「扉」を一つだけ選んでください。<br>
+            今日という日を最高にする鍵がそこにあります。
+        </div>
+        <div class="choice-buttons">
+            <button id="btnA" onclick="selectFortune('A')">【A】<br>真理の扉</button>
+            <button id="btnB" onclick="selectFortune('B')">【B】<br>慈愛の扉</button>
+            <button id="btnC" onclick="selectFortune('C')">【C】<br>創造の扉</button>
+        </div>
+    </div>
+
+    <div id="result">
+        <div id="fortuneContent"></div>
+        <div class="notice-card">本日の鑑定は以上です。明日また新しい運勢をお届けします。</div>
     </div>
 </div>
 
+  <div class="footer-info">
+    <div class="info-text">
+     今回のアプリは如何だったでしょうか？他にも使えるアプリ、脳トレができるゲームや趣味に俳句、和歌などが利用できるサイトをご案内します。また大事な記録をサーバーに残せるサイトで、何かあった時に情報開示も指定できるサイトです。スマホのID、PWを記録しておくと安心です。
+    </div>
+    <img src="https://life-supporter.jp/sp/hxySQ4ff/8BaRR2j8/images/XS012098.jpg" style="display:block; margin:20px auto; max-width:100%;">
+    <div style="text-align:center;"><span style="font-size:18px;"><b></b></span></div>
+  </div>
+<p></p>  
+
+<p></p>    
+<!-- 14日体験案内-->  
+  <input type="file" id="jsonFile" style="display:none">
+  <input type="file" id="excelFile" style="display:none" accept=".xlsx,.xls">
+</div>
+
 <script>
-const quizData = [
-    { q: "スマホのロック解除パスワードを、信頼できる家族に共有していますか？", a: "万が一の際、スマホが開けないと連絡先も写真も確認できません。紙に書いて金庫に入れるか、スマホの『故人アカウント管理設定』を使いましょう。" },
-    { q: "ネット銀行や証券会社の『リスト』を作成していますか？", a: "通帳がない口座は、遺族が見落とす可能性が非常に高いです。金融機関名だけでもエンディングノートに書き留めましょう。" },
-    { q: "月額課金（サブスク）しているサービスを把握していますか？", a: "亡くなった後もカードから引き落とされ続けるリスクがあります。アプリや動画配信サービスなどのリスト化を。" },
-    { q: "SNS（LINE, Facebook等）のアカウントをどうしたいか決めていますか？", a: "放置すると乗っ取りのリスクも。Facebookの追悼アカウント設定などを確認しておきましょう。" },
-    { q: "パソコンにログインするためのPWを家族が知る手段はありますか？", a: "仕事の資料や大切なデータが入っている場合、業者に頼むと高額な費用がかかることがあります。" },
-    { q: "暗号資産（仮想通貨）やNFTを所有していますか？（NOなら次へ）", a: "これらはPW（秘密鍵）を紛失すると二度と取り出せません。最も紛失リスクが高いデジタル資産です。" },
-    { q: "クラウド（GoogleフォトやiCloud）に大切な写真を保存していますか？", a: "家族がアクセスできるよう、共有設定や遺された人向けのアクセス権設定を行いましょう。" },
-    { q: "人に見られたくない『秘密のデータ』の処理を決めていますか？", a: "見られたくないものは死後に自動消去するソフトを使うか、場所を特定されない工夫が必要です。" },
-    { q: "主要なログインIDとPWを一つの場所にまとめて管理していますか？", a: "パスワード管理アプリや、1つのマスターキーで開く物理的なノートでの管理が推奨されます。" },
-    { q: "キャッシュレス決済（PayPay、モバイルSuica等）の残高はありますか？", a: "少額でも数が増えると大きな額に。家族が払い戻し手続きを知っているか確認しましょう。" }
-];
+    const today = new Date();
+    const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    document.getElementById('currentDate').innerText = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
 
-let currentIdx = 0;
-let score = 0;
+    let score = parseInt(localStorage.getItem('myScore') || '0');
+    let coin = parseInt(localStorage.getItem('myCoin') || '0');
+    let lastDate = localStorage.getItem('lastFortuneDate');
+    let savedChoice = localStorage.getItem('lastFortuneChoice');
 
-const qContainer = document.getElementById('question-container');
+    updateStatus();
 
-function showQuestion() {
-    qContainer.innerHTML = `
-        <div class="question-card active">
-            <p>第 ${currentIdx + 1} 問 / 10</p>
-            <p style="font-size: 1.2rem; font-weight: bold;">${quizData[currentIdx].q}</p>
-            <div class="btn-group">
-                <button class="yes-btn" onclick="handleAnswer(true)">はい (YES)</button>
-                <button class="no-btn" onclick="handleAnswer(false)">いいえ (NO)</button>
-            </div>
-            <div id="advice-${currentIdx}" class="advice-box">
-                <strong>アドバイス：</strong><br>${quizData[currentIdx].a}
-                <br><button onclick="nextQuestion()" style="margin-top:10px; width:100%;">次へ進む</button>
-            </div>
-        </div>
-    `;
-}
+    window.onload = function() {
+        if (lastDate === dateString && savedChoice) {
+            showFortune(savedChoice);
+        }
+    };
 
-function handleAnswer(isYes) {
-    if (isYes) score++;
-    const adviceBox = document.getElementById(`advice-${currentIdx}`);
-    adviceBox.style.display = 'block';
-    // ボタンを無効化して連打防止
-    const btns = document.querySelectorAll('button');
-    btns[0].disabled = true;
-    btns[1].disabled = true;
-}
-
-function nextQuestion() {
-    currentIdx++;
-    if (currentIdx < quizData.length) {
-        showQuestion();
-    } else {
-        showResult();
-    }
-}
-
-function showResult() {
-    document.getElementById('quiz-section').style.display = 'none';
-    const resultArea = document.getElementById('result-area');
-    resultArea.style.display = 'block';
-
-    const scorePct = (score / quizData.length) * 100;
-    document.getElementById('gauge-bar').style.width = scorePct + '%';
-    document.getElementById('score-text').innerText = `あなたの安心度：${scorePct}点`;
-
-    let eval = "";
-    let totalAdvice = "";
-
-    if (score >= 8) {
-        eval = "【安心レベル：高】";
-        totalAdvice = "素晴らしいです！デジタル遺産の管理がほぼ完璧です。定期的にパスワードの更新や、リストの最新化を行いましょう。";
-    } else if (score >= 5) {
-        eval = "【危険レベル：中】";
-        totalAdvice = "半分程度は準備できていますが、まだ漏れがあります。特に『お金』に直結するネット銀行やサブスクの整理から始めましょう。";
-    } else {
-        eval = "【危険レベル：高】";
-        totalAdvice = "今すぐ対策が必要です。まずはスマホのパスワードをどう家族に伝えるか、そこから第一歩を踏み出しましょう。";
+    function updateStatus() {
+        document.getElementById('userScore').innerText = score;
+        document.getElementById('userCoin').innerText = coin;
     }
 
-    document.getElementById('evaluation-text').innerText = eval;
-    document.getElementById('total-advice').innerText = totalAdvice;
-}
+    function selectFortune(choice) {
+        if (localStorage.getItem('lastFortuneDate') === dateString) return;
 
-showQuestion();
+        localStorage.setItem('lastFortuneDate', dateString);
+        localStorage.setItem('lastFortuneChoice', choice);
+        
+        if (choice === 'A') { score += 150; coin += 100; }
+        else if (choice === 'B') { score += 100; coin += 60; }
+        else { score += 80; coin += 40; }
+        
+        localStorage.setItem('myScore', score);
+        localStorage.setItem('myCoin', coin);
+        updateStatus();
+        showFortune(choice);
+    }
+
+    function showFortune(choice) {
+        const resultDiv = document.getElementById('result');
+        const content = document.getElementById('fortuneContent');
+        
+        document.getElementById('btnA').disabled = true;
+        document.getElementById('btnB').disabled = true;
+        document.getElementById('btnC').disabled = true;
+        document.getElementById('btn' + choice).style.background = "#ff9800";
+        document.getElementById('btn' + choice).style.boxShadow = "none";
+
+        let text = "";
+        if (choice === 'A') {
+            text = `<div class="fortune-header">【A】真理の扉：龍が天に昇るような飛躍の日</div>
+                    <div class="section-title">🔮 全体運</div>
+                    <div class="section-content">今日のあなたは、澱みのない清流のような決断力を持っています。迷っていたことに終止符を打ち、新しいステージへ進むための扉が目の前で開いています。直感力が冴え渡っているため、他人の意見よりも「自分の心の声」を優先することが開運の絶対条件です。</div>
+                    <div class="section-title">🔮 仕事・学業運</div>
+                    <div class="section-content">リーダーシップを発揮できる時。あなたの何気ない提案が周囲の目から鱗を落とし、プロジェクトや課題を大きく前進させるでしょう。攻めの姿勢が功を奏します。</div>
+                    <div class="section-title">🔮 対人運</div>
+                    <div class="section-content">憧れの人や、これまで接点のなかった「格上の人物」との縁がつながりやすい日です。自分を小さく見せず、堂々とした振る舞いが良縁を引き寄せます。</div>
+                    <div class="lucky-grid">
+                        <div class="lucky-item"><span class="item-label">ラッキーカラー：</span> 深紅</div>
+                        <div class="lucky-item"><span class="item-label">ラッキーフード：</span> スパイシー料理</div>
+                        <div class="lucky-item"><span class="item-label">アクション：</span> 鏡を見て自分を褒める</div>
+                        <div class="lucky-item"><span class="item-label">重要POINT：</span> 即断即決</div>
+                    </div>`;
+        } else if (choice === 'B') {
+            text = `<div class="fortune-header">【B】慈愛の扉：心に温かな光が灯る癒やしの日</div>
+                    <div class="section-title">🔮 全体運</div>
+                    <div class="section-content">今日は「受け取ること」を自分に許可する日です。普段頑張りすぎているあなたへ、周囲や天からのギフトが届きやすい運気です。感謝の気持ちを言葉にすることで、そのポジティブなエネルギーが何倍にもなってあなたの元へ返ってくるでしょう。</div>
+                    <div class="section-title">🔮 仕事・学業運</div>
+                    <div class="section-content">効率よりも「丁寧さ」を大切に。資料を整えたり、机を掃除したりする基礎的な行動が、のちに大きな評価として現れます。後輩や仲間のサポートに回るのも吉。</div>
+                    <div class="section-title">🔮 対人運</div>
+                    <div class="section-content">疎遠になっていた友人から連絡があるかもしれません。聞き役に徹することで、あなた自身の心のトゲも溶けていくような、穏やかな時間を過ごせるはずです。</div>
+                    <div class="lucky-grid">
+                        <div class="lucky-item"><span class="item-label">ラッキーカラー：</span> パステルグリーン</div>
+                        <div class="lucky-item"><span class="item-label">ラッキーフード：</span> ハーブティー</div>
+                        <div class="lucky-item"><span class="item-label">アクション：</span> 植物に水をやる</div>
+                        <div class="lucky-item"><span class="item-label">重要POINT：</span> 笑顔の挨拶</div>
+                    </div>`;
+        } else {
+            text = `<div class="fortune-header">【C】創造の扉：未知なる種が芽吹く準備の日</div>
+                    <div class="section-title">🔮 全体運</div>
+                    <div class="section-content">大きな変化の前の「静寂」を楽しむ日です。一見、何も起きていないように見えても、水面下では着実に準備が整っています。今日は無理に結果を求めず、自分の内側にある知識や経験を整理することに時間を使ってください。</div>
+                    <div class="section-title">🔮 仕事・学業運</div>
+                    <div class="section-content">独創的なアイデアが生まれやすい時です。ノートとペンを持ち歩き、ふと思いついたことをメモしておきましょう。それが数ヶ月後のあなたを助ける大きな武器になります。</div>
+                    <div class="section-title">🔮 対人運</div>
+                    <div class="section-content">一人の時間を大切にすることで、逆にパートナーや家族との絆の深さを再確認できます。言葉で伝えきれない思いは、小さな手紙やプチギフトに託すと吉です。</div>
+                    <div class="lucky-grid">
+                        <div class="lucky-item"><span class="item-label">ラッキーカラー：</span> ロイヤルブルー</div>
+                        <div class="lucky-item"><span class="item-label">ラッキーフード：</span> 根菜のスープ</div>
+                        <div class="lucky-item"><span class="item-label">アクション：</span> 本屋へ行く</div>
+                        <div class="lucky-item"><span class="item-label">重要POINT：</span> 深呼吸と休息</div>
+                    </div>`;
+        }
+        content.innerHTML = text;
+        resultDiv.style.display = 'block';
+    }
 </script>
-
-
+</body>
+</html>
