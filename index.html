@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>終活診断：デジタル遺産編</title>
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #333;
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        h1 { font-size: 1.5rem; margin-bottom: 30px; color: #2c3e50; }
+        .question-card {
+            display: none; /* 順番に表示 */
+            border: 1px solid #eee;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .question-card.active { display: block; }
+        .btn-group { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
+        button {
+            padding: 10px 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #fff;
+            transition: 0.3s;
+        }
+        button:hover { background: #f0f0f0; }
+        .yes-btn { border-color: #27ae60; color: #27ae60; }
+        .no-btn { border-color: #e74c3c; color: #e74c3c; }
+        
+        .advice-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            text-align: left;
+            display: none;
+        }
+        #result-area { display: none; }
+        .score { font-size: 2rem; font-weight: bold; margin: 20px 0; }
+        .gauge { height: 10px; width: 100%; background: #eee; border-radius: 5px; overflow: hidden; margin-bottom: 20px; }
+        .gauge-bar { height: 100%; background: #27ae60; width: 0%; transition: 1s; }
+    </style>
+
+
+
+<div class="container">
+    <div id="quiz-section">
+        <h1 id="category-title">終活診断：デジタル遺産編</h1>
+        <div id="question-container">
+            </div>
+    </div>
+
+    <div id="result-area">
+        <h1>診断結果</h1>
+        <div class="gauge"><div id="gauge-bar" class="gauge-bar"></div></div>
+        <div id="score-text" class="score"></div>
+        <div id="evaluation-text" style="font-weight: bold; margin-bottom: 20px;"></div>
+        <p id="total-advice"><br></p>
+        <button onclick="location.reload()">もう一度診断する</button>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    { q: "スマホのロック解除パスワードを、信頼できる家族に共有していますか？", a: "万が一の際、スマホが開けないと連絡先も写真も確認できません。紙に書いて金庫に入れるか、スマホの『故人アカウント管理設定』を使いましょう。" },
+    { q: "ネット銀行や証券会社の『リスト』を作成していますか？", a: "通帳がない口座は、遺族が見落とす可能性が非常に高いです。金融機関名だけでもエンディングノートに書き留めましょう。" },
+    { q: "月額課金（サブスク）しているサービスを把握していますか？", a: "亡くなった後もカードから引き落とされ続けるリスクがあります。アプリや動画配信サービスなどのリスト化を。" },
+    { q: "SNS（LINE, Facebook等）のアカウントをどうしたいか決めていますか？", a: "放置すると乗っ取りのリスクも。Facebookの追悼アカウント設定などを確認しておきましょう。" },
+    { q: "パソコンにログインするためのPWを家族が知る手段はありますか？", a: "仕事の資料や大切なデータが入っている場合、業者に頼むと高額な費用がかかることがあります。" },
+    { q: "暗号資産（仮想通貨）やNFTを所有していますか？（NOなら次へ）", a: "これらはPW（秘密鍵）を紛失すると二度と取り出せません。最も紛失リスクが高いデジタル資産です。" },
+    { q: "クラウド（GoogleフォトやiCloud）に大切な写真を保存していますか？", a: "家族がアクセスできるよう、共有設定や遺された人向けのアクセス権設定を行いましょう。" },
+    { q: "人に見られたくない『秘密のデータ』の処理を決めていますか？", a: "見られたくないものは死後に自動消去するソフトを使うか、場所を特定されない工夫が必要です。" },
+    { q: "主要なログインIDとPWを一つの場所にまとめて管理していますか？", a: "パスワード管理アプリや、1つのマスターキーで開く物理的なノートでの管理が推奨されます。" },
+    { q: "キャッシュレス決済（PayPay、モバイルSuica等）の残高はありますか？", a: "少額でも数が増えると大きな額に。家族が払い戻し手続きを知っているか確認しましょう。" }
+];
+
+let currentIdx = 0;
+let score = 0;
+
+const qContainer = document.getElementById('question-container');
+
+function showQuestion() {
+    qContainer.innerHTML = `
+        <div class="question-card active">
+            <p>第 ${currentIdx + 1} 問 / 10</p>
+            <p style="font-size: 1.2rem; font-weight: bold;">${quizData[currentIdx].q}</p>
+            <div class="btn-group">
+                <button class="yes-btn" onclick="handleAnswer(true)">はい (YES)</button>
+                <button class="no-btn" onclick="handleAnswer(false)">いいえ (NO)</button>
+            </div>
+            <div id="advice-${currentIdx}" class="advice-box">
+                <strong>アドバイス：</strong><br>${quizData[currentIdx].a}
+                <br><button onclick="nextQuestion()" style="margin-top:10px; width:100%;">次へ進む</button>
+            </div>
+        </div>
+    `;
+}
+
+function handleAnswer(isYes) {
+    if (isYes) score++;
+    const adviceBox = document.getElementById(`advice-${currentIdx}`);
+    adviceBox.style.display = 'block';
+    // ボタンを無効化して連打防止
+    const btns = document.querySelectorAll('button');
+    btns[0].disabled = true;
+    btns[1].disabled = true;
+}
+
+function nextQuestion() {
+    currentIdx++;
+    if (currentIdx < quizData.length) {
+        showQuestion();
+    } else {
+        showResult();
+    }
+}
+
+function showResult() {
+    document.getElementById('quiz-section').style.display = 'none';
+    const resultArea = document.getElementById('result-area');
+    resultArea.style.display = 'block';
+
+    const scorePct = (score / quizData.length) * 100;
+    document.getElementById('gauge-bar').style.width = scorePct + '%';
+    document.getElementById('score-text').innerText = `あなたの安心度：${scorePct}点`;
+
+    let eval = "";
+    let totalAdvice = "";
+
+    if (score >= 8) {
+        eval = "【安心レベル：高】";
+        totalAdvice = "素晴らしいです！デジタル遺産の管理がほぼ完璧です。定期的にパスワードの更新や、リストの最新化を行いましょう。";
+    } else if (score >= 5) {
+        eval = "【危険レベル：中】";
+        totalAdvice = "半分程度は準備できていますが、まだ漏れがあります。特に『お金』に直結するネット銀行やサブスクの整理から始めましょう。";
+    } else {
+        eval = "【危険レベル：高】";
+        totalAdvice = "今すぐ対策が必要です。まずはスマホのパスワードをどう家族に伝えるか、そこから第一歩を踏み出しましょう。";
+    }
+
+    document.getElementById('evaluation-text').innerText = eval;
+    document.getElementById('total-advice').innerText = totalAdvice;
+}
+
+showQuestion();
+</script>
+
+
